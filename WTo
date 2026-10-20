@@ -1,0 +1,181 @@
+-- ==========================================
+-- Script Name: ZSYO⭐
+-- Functions: 
+-- 1. Main Hack (Invisibility, Jump 70, Look At Player, Fly, Speed 100)
+-- 2. Toggle GUI (Open/Close Menu)
+-- 3. Reset All (Reset character back to normal)
+-- ==========================================
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+FrameTitle = Instance.new("TextLabel")
+local BtnFunction1 = Instance.new("TextButton")
+local BtnToggleMenu = Instance.new("TextButton")
+local BtnReset = Instance.new("TextButton")
+
+local player = game.Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- ตั้งค่าหน้าจอ GUI
+ScreenGui.Name = "ZSYO_HUB"
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- กรอบเมนูหลัก
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 250, 0, 220)
+MainFrame.Active = true
+MainFrame.Draggable = true -- สามารถลากเปลี่ยนตำแหน่งหน้าจอได้
+
+-- หัวข้อชื่อสคริปต์
+FrameTitle.Parent = MainFrame
+FrameTitle.Size = UDim2.new(1, 0, 0, 40)
+FrameTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FrameTitle.Text = "ZSYO⭐"
+FrameTitle.TextColor3 = Color3.fromRGB(255, 215, 0) -- สีทอง
+FrameTitle.TextSize = 22
+FrameTitle.Font = Enum.Font.SourceSansBold
+
+-- ตัวแปรระบบ บิน & มองคน
+local flying = false
+local flybv, flybg
+
+----------------------------------------------------
+-- ฟังก์ชันที่ 1: เปิดใช้งานพลังทั้งหมด (Invisibility + Jump + Look + Fly + Speed 100)
+----------------------------------------------------
+BtnFunction1.Name = "BtnFunction1"
+BtnFunction1.Parent = MainFrame
+BtnFunction1.Position = UDim2.new(0.1, 0, 0.25, 0)
+BtnFunction1.Size = UDim2.new(0.8, 0, 0.2, 0)
+BtnFunction1.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+BtnFunction1.Text = "ฟังก์ชัน 1: เปิดใช้งาน ZSYO⭐"
+BtnFunction1.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnFunction1.TextSize = 14
+BtnFunction1.Font = Enum.Font.SourceSansBold
+
+BtnFunction1.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    
+    -- 1. วิ่งเร็ว 100
+    if humanoid then
+        humanoid.WalkSpeed = 100
+    end
+    
+    -- 2. กระโดดสูงไม่ต่ำกว่า 20 เมตร (ตั้งไว้ที่ 70 studs)
+    if humanoid then
+        humanoid.UseJumpPower = false
+        humanoid.JumpHeight = 70
+    end
+    
+    -- 3. ล่องหน (ปรับความโปร่งแสงของส่วนต่างๆ เป็น 1)
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("Decal") then
+            part.Transparency = 1
+        end
+    end
+    
+    -- 4. มองคน (หันไปมองผู้เล่นที่อยู่ใกล้ที่สุด)
+    local closestPlayer = nil
+    local shortestDist = math.huge
+    for _, other in ipairs(game.Players:GetPlayers()) do
+        if other ~= player and other.Character and other.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (root.Position - other.Character.HumanoidRootPart.Position).Magnitude
+            if dist < shortestDist then
+                shortestDist = dist
+                closestPlayer = other
+            end
+        end
+    end
+    if closestPlayer and closestPlayer.Character then
+        local targetPos = closestPlayer.Character.HumanoidRootPart.Position
+        root.CFrame = CFrame.lookAt(root.Position, Vector3.new(targetPos.X, root.Position.Y, targetPos.Z))
+    end
+    
+    -- 5. ระบบบิน (Fly)
+    if not flying and root then
+        flying = true
+        humanoid.PlatformStand = true
+        
+        flybv = Instance.new("BodyVelocity")
+        flybv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        flybv.Velocity = camera.CFrame.LookVector * 50
+        flybv.Parent = root
+        
+        flybg = Instance.new("BodyGyro")
+        flybg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        flybg.CFrame = camera.CFrame
+        flybg.Parent = root
+        
+        -- บินตามทิศทางกล้องมอง
+        task.spawn(function()
+            while flying and task.wait() do
+                if flybv and flybg then
+                    flybv.Velocity = camera.CFrame.LookVector * 60
+                    flybg.CFrame = camera.CFrame
+                end
+            end
+        end)
+    end
+    print("เปิดใช้งานฟังก์ชัน 1 สำเร็จ!")
+end)
+
+----------------------------------------------------
+-- ฟังก์ชันที่ 2: เปิด / ปิด เมนูหน้าจอ (Toggle Menu)
+----------------------------------------------------
+BtnToggleMenu.Name = "BtnToggleMenu"
+BtnToggleMenu.Parent = ScreenGui
+BtnToggleMenu.Position = UDim2.new(0.02, 0, 0.4, 0)
+BtnToggleMenu.Size = UDim2.new(0, 80, 0, 35)
+BtnToggleMenu.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+BtnToggleMenu.Text = "ZSYO⭐ (ซ่อน)"
+BtnToggleMenu.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnToggleMenu.TextSize = 12
+
+BtnToggleMenu.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+----------------------------------------------------
+-- ฟังก์ชันที่ 3: รีเซ็ตสถานะกลับเป็นปกติ (Reset Status)
+----------------------------------------------------
+BtnReset.Name = "BtnReset"
+BtnReset.Parent = MainFrame
+BtnReset.Position = UDim2.new(0.1, 0, 0.55, 0)
+BtnReset.Size = UDim2.new(0.8, 0, 0.2, 0)
+BtnReset.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+BtnReset.Text = "ฟังก์ชัน 3: รีเซ็ตตัวละครกลับปกติ"
+BtnReset.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnReset.TextSize = 14
+BtnReset.Font = Enum.Font.SourceSansBold
+
+BtnReset.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    
+    -- ปิดการบิน
+    flying = false
+    if flybv then flybv:Destroy() end
+    if flybg then flybg:Destroy() end
+    if humanoid then humanoid.PlatformStand = false end
+    
+    -- คืนค่าความเร็ว และความสูงการกระโดด
+    if humanoid then
+        humanoid.WalkSpeed = 16
+        humanoid.JumpHeight = 7.2
+    end
+    
+    -- คืนค่าการมองเห็นตัวละคร (เลิกล่องหน)
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("Decal") then
+            part.Transparency = 0
+        end
+    end
+    print("รีเซ็ตสถานะเรียบร้อย!")
+end)
